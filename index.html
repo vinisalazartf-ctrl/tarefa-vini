@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roteiro Semanal — Vini Salazar</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --roxo: #7B2FBE;
+    --roxo-vivo: #9B3FDE;
+    --prata: #A0A0A0;
+    --branco: #F0F0F0;
+    --fundo: #0A0A0A;
+    --card: #131313;
+    --card2: #1A1A1A;
+    --borda: #252525;
+    --verde: #22C55E;
+    --vermelho: #EF4444;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--fundo); color:var(--branco); font-family:'DM Sans',sans-serif; min-height:100vh; padding-bottom:4rem; }
+
+  .header { background:linear-gradient(135deg,#0A0A0A 0%,#1a0a2e 100%); border-bottom:1px solid var(--borda); padding:1.2rem 1rem 1rem; position:sticky; top:0; z-index:100; }
+  .header-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:0.8rem; }
+  .header h1 { font-family:'Bebas Neue',sans-serif; font-size:1.8rem; letter-spacing:0.08em; line-height:1; text-shadow:0 0 30px rgba(123,47,190,0.7); }
+  .header h1 span { color:var(--roxo-vivo); }
+  .data-hoje { font-size:0.72rem; color:var(--prata); text-align:right; letter-spacing:0.05em; }
+
+  .tabs-wrapper { overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none; }
+  .tabs-wrapper::-webkit-scrollbar { display:none; }
+  .tabs { display:flex; gap:0.4rem; padding-bottom:0.1rem; width:max-content; }
+
+  .tab { padding:0.4rem 0.9rem; border-radius:8px; border:1px solid var(--borda); background:transparent; color:var(--prata); font-family:'DM Sans',sans-serif; font-size:0.78rem; font-weight:600; cursor:pointer; transition:all 0.2s; white-space:nowrap; letter-spacing:0.03em; }
+  .tab:hover { border-color:var(--roxo-vivo); color:var(--branco); }
+  .tab.active { background:var(--roxo); border-color:var(--roxo-vivo); color:#fff; }
+  .tab.hoje-tab { border-color:var(--roxo-vivo); color:var(--roxo-vivo); }
+  .tab.semana-futura { border-color:#3a2a5e; color:#7a6a9e; }
+  .tab.semana-futura:hover { border-color:var(--roxo-vivo); color:var(--branco); }
+  .tab .prog { display:inline-block; margin-left:0.3rem; font-size:0.65rem; opacity:0.8; }
+
+  /* Sub-tabs dias dentro de semana futura */
+  .subtabs-wrapper { overflow-x:auto; scrollbar-width:none; margin-bottom:0.8rem; }
+  .subtabs-wrapper::-webkit-scrollbar { display:none; }
+  .subtabs { display:flex; gap:0.4rem; width:max-content; }
+  .subtab { padding:0.35rem 0.75rem; border-radius:7px; border:1px solid var(--borda); background:transparent; color:var(--prata); font-family:'DM Sans',sans-serif; font-size:0.74rem; font-weight:600; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+  .subtab.active { background:rgba(123,47,190,0.3); border-color:var(--roxo-vivo); color:var(--branco); }
+  .subtab:hover { border-color:var(--roxo-vivo); color:var(--branco); }
+
+  .main { padding:1rem; max-width:680px; margin:0 auto; }
+
+  .progress-card { background:var(--card); border:1px solid var(--borda); border-radius:12px; padding:0.9rem 1rem; margin-bottom:1rem; display:flex; align-items:center; gap:1rem; }
+  .progress-info { flex:1; }
+  .progress-label { font-size:0.72rem; color:var(--prata); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:0.4rem; }
+  .progress-bar-bg { height:6px; background:var(--borda); border-radius:99px; overflow:hidden; }
+  .progress-bar-fill { height:100%; background:linear-gradient(90deg,var(--roxo),var(--roxo-vivo)); border-radius:99px; transition:width 0.4s ease; }
+  .progress-pct { font-family:'Bebas Neue',sans-serif; font-size:2rem; color:var(--roxo-vivo); letter-spacing:0.05em; line-height:1; }
+
+  .periodo-label { font-size:0.65rem; text-transform:uppercase; letter-spacing:0.12em; color:var(--prata); font-weight:600; padding-left:0.5rem; border-left:2px solid var(--roxo-vivo); margin:1rem 0 0.5rem; }
+
+  .tarefa-item { display:flex; align-items:flex-start; gap:0.7rem; padding:0.6rem 0.8rem; border-radius:10px; background:var(--card); border:1px solid var(--borda); margin-bottom:0.35rem; transition:all 0.2s; cursor:pointer; }
+  .tarefa-item:hover { border-color:rgba(123,47,190,0.4); background:rgba(123,47,190,0.07); }
+  .tarefa-item.done { opacity:0.45; background:rgba(34,197,94,0.04); border-color:rgba(34,197,94,0.15); }
+  .check-box { width:18px; height:18px; border-radius:5px; border:2px solid var(--borda); flex-shrink:0; margin-top:1px; display:flex; align-items:center; justify-content:center; transition:all 0.2s; background:transparent; }
+  .tarefa-item.done .check-box { background:var(--verde); border-color:var(--verde); }
+  .check-icon { display:none; color:#fff; font-size:11px; font-weight:700; }
+  .tarefa-item.done .check-icon { display:block; }
+  .tarefa-texto { flex:1; font-size:0.82rem; line-height:1.4; color:var(--branco); }
+  .tarefa-item.done .tarefa-texto { text-decoration:line-through; color:var(--prata); }
+  .tarefa-meta { display:flex; align-items:center; gap:0.4rem; flex-shrink:0; }
+  .freq-badge { font-size:0.58rem; padding:0.15rem 0.4rem; border-radius:4px; background:rgba(255,255,255,0.05); color:var(--prata); font-weight:500; letter-spacing:0.03em; }
+  .turno-badge { font-size:0.58rem; padding:0.15rem 0.4rem; border-radius:4px; background:rgba(123,47,190,0.15); color:#c4a0f0; font-weight:500; }
+  .dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; margin-top:4px; }
+  .dot.comunicacao { background:#3B82F6; }
+  .dot.financeiro  { background:#22C55E; }
+  .dot.alunos      { background:#F97316; }
+  .dot.conteudo    { background:#A855F7; }
+  .dot.operacional { background:#EAB308; }
+  .dot.estrategico { background:#EF4444; }
+  .dot.custom      { background:var(--prata); }
+  .btn-delete { background:none; border:none; color:#555; cursor:pointer; font-size:0.9rem; padding:0 0.1rem; transition:color 0.2s; line-height:1; }
+  .btn-delete:hover { color:var(--vermelho); }
+
+  .add-section { margin-top:1.5rem; background:var(--card); border:1px solid var(--borda); border-radius:12px; padding:1rem; }
+  .add-title { font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--prata); font-weight:600; margin-bottom:0.7rem; }
+  .add-row { display:flex; gap:0.5rem; flex-wrap:wrap; }
+  .add-input { flex:1; min-width:180px; background:var(--card2); border:1px solid var(--borda); border-radius:8px; color:var(--branco); font-family:'DM Sans',sans-serif; font-size:0.82rem; padding:0.55rem 0.8rem; outline:none; transition:border-color 0.2s; }
+  .add-input:focus { border-color:var(--roxo-vivo); }
+  .add-input::placeholder { color:#555; }
+  .add-select { background:var(--card2); border:1px solid var(--borda); border-radius:8px; color:var(--prata); font-family:'DM Sans',sans-serif; font-size:0.78rem; padding:0.55rem 0.7rem; outline:none; cursor:pointer; }
+  .add-select:focus { border-color:var(--roxo-vivo); }
+  .btn-add { background:var(--roxo); border:none; border-radius:8px; color:#fff; font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:600; padding:0.55rem 1.1rem; cursor:pointer; transition:background 0.2s; white-space:nowrap; }
+  .btn-add:hover { background:var(--roxo-vivo); }
+
+  .historico-btn { display:flex; align-items:center; gap:0.5rem; width:100%; background:none; border:1px solid var(--borda); border-radius:10px; color:var(--prata); font-family:'DM Sans',sans-serif; font-size:0.78rem; font-weight:600; padding:0.65rem 0.9rem; cursor:pointer; margin-top:1.5rem; transition:all 0.2s; letter-spacing:0.04em; text-transform:uppercase; }
+  .historico-btn:hover { border-color:var(--roxo-vivo); color:var(--branco); }
+  .historico-panel { display:none; margin-top:0.5rem; background:var(--card); border:1px solid var(--borda); border-radius:12px; padding:1rem; }
+  .historico-panel.open { display:block; }
+  .hist-dia { margin-bottom:1rem; }
+  .hist-dia-label { font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--roxo-vivo); font-weight:600; margin-bottom:0.4rem; }
+  .hist-item { display:flex; align-items:center; gap:0.5rem; font-size:0.78rem; color:var(--prata); padding:0.3rem 0; border-bottom:1px solid var(--borda); }
+  .hist-item:last-child { border-bottom:none; }
+  .hist-check { color:var(--verde); font-size:0.8rem; }
+  .hist-data { margin-left:auto; font-size:0.65rem; color:#444; }
+
+  .actions-row { display:flex; gap:0.5rem; margin-top:1rem; flex-wrap:wrap; }
+  .btn-clear { background:none; border:1px solid rgba(239,68,68,0.3); border-radius:8px; color:rgba(239,68,68,0.7); font-family:'DM Sans',sans-serif; font-size:0.75rem; font-weight:600; padding:0.45rem 0.9rem; cursor:pointer; transition:all 0.2s; }
+  .btn-clear:hover { border-color:var(--vermelho); color:var(--vermelho); }
+  .empty-state { text-align:center; padding:2rem 1rem; color:#444; font-size:0.82rem; }
+
+  .semana-header { background:rgba(123,47,190,0.08); border:1px solid rgba(123,47,190,0.2); border-radius:10px; padding:0.7rem 1rem; margin-bottom:1rem; display:flex; align-items:center; justify-content:space-between; }
+  .semana-header-label { font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:0.08em; color:var(--roxo-vivo); }
+  .semana-header-datas { font-size:0.72rem; color:var(--prata); }
+
+  .toast { position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%) translateY(100px); background:var(--roxo); color:#fff; padding:0.6rem 1.2rem; border-radius:99px; font-size:0.8rem; font-weight:600; z-index:999; transition:transform 0.3s ease; white-space:nowrap; box-shadow:0 4px 20px rgba(123,47,190,0.5); }
+  .toast.show { transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <h1>ROTEIRO <span>SEMANAL</span></h1>
+    <div class="data-hoje" id="dataHoje"></div>
+  </div>
+  <div class="tabs-wrapper">
+    <div class="tabs" id="tabs"></div>
+  </div>
+</div>
+
+<div class="main" id="main"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// =====================
+// DADOS INICIAIS
+// =====================
+const DIAS_SEMANA = ['Segunda','Terça','Quarta','Quinta','Sexta'];
+const DIAS = ['Segunda','Terça','Quarta','Quinta','Sexta','Mensal'];
+
+const TAREFAS_INICIAIS = {
+  Segunda: [
+    { id:'seg1', texto:'WhatsApp — responder antes da Carina chegar', cat:'comunicacao', freq:'diário', turno:'manhã' },
+    { id:'seg2', texto:'Pagamentos do dia', cat:'financeiro', freq:'diário', turno:'manhã' },
+    { id:'seg3', texto:'Alunos com pagamento pendente — verificar lista', cat:'financeiro', freq:'semanal', turno:'manhã' },
+    { id:'seg4', texto:'Planejamento da semana — definir prioridades', cat:'estrategico', freq:'semanal', turno:'manhã' },
+    { id:'seg5', texto:'Calendário de conteúdo — planejar posts da semana', cat:'conteudo', freq:'semanal', turno:'manhã' },
+    { id:'seg6', texto:'Ver alunos faltantes e enviar mensagem de retorno', cat:'alunos', freq:'semanal', turno:'tarde' },
+    { id:'seg7', texto:'Verificar renovações de plano da semana', cat:'alunos', freq:'semanal', turno:'tarde' },
+    { id:'seg8', texto:'Criar carrossel ou gravar vídeo para o Instagram', cat:'conteudo', freq:'semanal', turno:'tarde' },
+    { id:'seg9', texto:'Tecnofit — registro de leads e novos alunos', cat:'operacional', freq:'semanal', turno:'tarde' },
+  ],
+  Terça: [
+    { id:'ter1', texto:'WhatsApp — responder antes da Carina chegar', cat:'comunicacao', freq:'diário', turno:'manhã' },
+    { id:'ter2', texto:'Pagamentos do dia', cat:'financeiro', freq:'diário', turno:'manhã' },
+    { id:'ter3', texto:'Acompanhamento individual de alunos', cat:'alunos', freq:'semanal', turno:'manhã' },
+    { id:'ter4', texto:'Criar carrossel ou gravar vídeo para o Instagram', cat:'conteudo', freq:'semanal', turno:'tarde' },
+    { id:'ter5', texto:'Enviar propostas de renovação de plano', cat:'alunos', freq:'semanal', turno:'tarde' },
+    { id:'ter6', texto:'Ações de retenção — pensar e executar iniciativa da semana', cat:'estrategico', freq:'semanal', turno:'tarde' },
+    { id:'ter7', texto:'Verificar estoque de materiais e equipamentos', cat:'operacional', freq:'semanal', turno:'tarde' },
+  ],
+  Quarta: [
+    { id:'qua1', texto:'WhatsApp — responder mensagens pendentes', cat:'comunicacao', freq:'diário', turno:'manhã' },
+    { id:'qua2', texto:'Pagamentos do dia', cat:'financeiro', freq:'diário', turno:'manhã' },
+    { id:'qua3', texto:'Responder comentários e DMs do Instagram', cat:'conteudo', freq:'diário', turno:'manhã' },
+    { id:'qua4', texto:'Controle financeiro — entradas e saídas da semana', cat:'financeiro', freq:'semanal', turno:'tarde' },
+    { id:'qua5', texto:'Manutenção do estúdio — verificar necessidades', cat:'operacional', freq:'semanal', turno:'tarde' },
+    { id:'qua6', texto:'Programa de recompensas — acompanhar/atualizar (Perdigão)', cat:'estrategico', freq:'semanal', turno:'tarde' },
+    { id:'qua7', texto:'Atualizar site (Emergent) se necessário', cat:'conteudo', freq:'quinzenal', turno:'tarde' },
+  ],
+  Quinta: [
+    { id:'qui1', texto:'WhatsApp — responder antes da Carina chegar', cat:'comunicacao', freq:'diário', turno:'manhã' },
+    { id:'qui2', texto:'Pagamentos do dia', cat:'financeiro', freq:'diário', turno:'manhã' },
+    { id:'qui3', texto:'Acompanhamento de alunos em risco de cancelamento', cat:'alunos', freq:'semanal', turno:'manhã' },
+    { id:'qui4', texto:'Criar conteúdo para o Instagram (post ou reels)', cat:'conteudo', freq:'semanal', turno:'tarde' },
+    { id:'qui5', texto:'Planejar evento ou ação especial no estúdio', cat:'alunos', freq:'mensal', turno:'tarde' },
+    { id:'qui6', texto:'Planejamento de campanhas e promoções', cat:'estrategico', freq:'quinzenal', turno:'tarde' },
+    { id:'qui7', texto:'Tecnofit — atualizar contratos e planos', cat:'operacional', freq:'semanal', turno:'tarde' },
+  ],
+  Sexta: [
+    { id:'sex0', texto:'📘 Enviar GUIA DO ALUNO para alunos novos da semana', cat:'alunos', freq:'semanal', turno:'manhã' },
+    { id:'sex1', texto:'WhatsApp — responder mensagens pendentes', cat:'comunicacao', freq:'diário', turno:'manhã' },
+    { id:'sex2', texto:'Pagamentos do dia', cat:'financeiro', freq:'diário', turno:'manhã' },
+    { id:'sex3', texto:'Métricas do Instagram — analisar semana', cat:'conteudo', freq:'semanal', turno:'manhã' },
+    { id:'sex4', texto:'Atualizar planilha de controle mensal (alunos ativos, novos, metas)', cat:'financeiro', freq:'semanal', turno:'tarde' },
+    { id:'sex5', texto:'Revisão da semana — o que funcionou, o que ficou pendente', cat:'estrategico', freq:'semanal', turno:'tarde' },
+    { id:'sex6', texto:'Ações de retenção — checar resultado das mensagens enviadas', cat:'alunos', freq:'semanal', turno:'tarde' },
+    { id:'sex7', texto:'Preparar conteúdo do final de semana se necessário', cat:'conteudo', freq:'semanal', turno:'tarde' },
+  ],
+  Mensal: [
+    { id:'men1', texto:'📨 Dia 1: Enviar msg de renovação (Samuel) — mês corrente + mês seguinte', cat:'alunos', freq:'mensal', turno:'manhã' },
+    { id:'men2', texto:'📨 2ª segunda-feira: Enviar msg abrindo renovação antecipada', cat:'alunos', freq:'mensal', turno:'manhã' },
+    { id:'men3', texto:'Fechamento financeiro do mês anterior — fluxo de caixa', cat:'financeiro', freq:'mensal', turno:'tarde' },
+    { id:'men4', texto:'Análise de inadimplência consolidada', cat:'financeiro', freq:'mensal', turno:'tarde' },
+    { id:'men5', texto:'Revisão de metas — alunos ativos, novos, evasão', cat:'alunos', freq:'mensal', turno:'tarde' },
+    { id:'men6', texto:'Reunião/alinhamento com Perdigão — programa de recompensas', cat:'estrategico', freq:'mensal', turno:'tarde' },
+    { id:'men7', texto:'Planejamento do evento do mês no estúdio', cat:'alunos', freq:'mensal', turno:'tarde' },
+    { id:'men8', texto:'Revisão do programa online de prevenção de quedas (idosos)', cat:'estrategico', freq:'mensal', turno:'tarde' },
+    { id:'men9', texto:'Manutenção e melhorias no estúdio (vestiário, equipamentos)', cat:'operacional', freq:'mensal', turno:'tarde' },
+  ]
+};
+
+const PERIODOS_MANHÃ = {
+  Segunda: ['seg1','seg2','seg3','seg4','seg5'],
+  Terça:   ['ter1','ter2','ter3'],
+  Quarta:  ['qua1','qua2','qua3'],
+  Quinta:  ['qui1','qui2','qui3'],
+  Sexta:   ['sex0','sex1','sex2','sex3'],
+  Mensal:  ['men1','men2','men3','men4','men5','men6','men7','men8','men9']
+};
+
+const LABELS_MANHÃ = {
+  Segunda: 'Manhã — 09h às 11h',
+  Terça:   'Manhã — 09h às 10h30',
+  Quarta:  'Manhã — 11h às 12h (pós-treino)',
+  Quinta:  'Manhã — 09h às 10h30',
+  Sexta:   'Manhã — 11h às 12h (pós-treino)',
+  Mensal:  'Tarefas Mensais'
+};
+
+const LABELS_TARDE = {
+  Segunda: 'Tarde — 14h às 17h',
+  Terça:   'Tarde — 14h às 17h',
+  Quarta:  'Tarde — 14h às 17h',
+  Quinta:  'Tarde — 14h às 17h',
+  Sexta:   'Tarde — 14h às 17h (fechamento)',
+};
+
+// =====================
+// SEMANAS DO MÊS
+// =====================
+function getWeekKey(date) {
+  const d = new Date(date);
+  d.setHours(0,0,0,0);
+  d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+  const yearStart = new Date(d.getFullYear(), 0, 1);
+  const week = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  return d.getFullYear() + '-W' + String(week).padStart(2,'0');
+}
+
+// Retorna a segunda-feira de uma semana ISO
+function getMondayOfWeek(weekKey) {
+  const [year, w] = weekKey.split('-W').map(Number);
+  const jan4 = new Date(year, 0, 4);
+  const startOfW1 = new Date(jan4);
+  startOfW1.setDate(jan4.getDate() - (jan4.getDay() || 7) + 1);
+  const monday = new Date(startOfW1);
+  monday.setDate(startOfW1.getDate() + (w - 1) * 7);
+  return monday;
+}
+
+// Retorna as semanas restantes do mês atual (excluindo a semana atual)
+function getSemanasFuturasMes() {
+  const hoje = new Date();
+  const semanaAtual = getWeekKey(hoje);
+  const mes = hoje.getMonth();
+  const ano = hoje.getFullYear();
+
+  const semanas = [];
+  // Verificar semanas 1-6 do mês
+  const d = new Date(ano, mes, 1);
+  const seen = new Set();
+  while (d.getMonth() === mes) {
+    const wk = getWeekKey(d);
+    if (!seen.has(wk) && wk > semanaAtual) {
+      const monday = getMondayOfWeek(wk);
+      const friday = new Date(monday);
+      friday.setDate(monday.getDate() + 4);
+      // Só inclui se a semana ainda está no mês ou começa no mês
+      if (monday.getMonth() === mes || friday.getMonth() === mes) {
+        semanas.push(wk);
+      }
+      seen.add(wk);
+    }
+    d.setDate(d.getDate() + 1);
+  }
+  return semanas;
+}
+
+// Retorna label da semana ex: "Sem 2 — 19/05"
+function getLabelSemana(weekKey, idx) {
+  const monday = getMondayOfWeek(weekKey);
+  const friday = new Date(monday);
+  friday.setDate(monday.getDate() + 4);
+  const fmt = d => d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit' });
+  return { short: `Sem ${idx+2}`, full: `Semana ${idx+2} — ${fmt(monday)} a ${fmt(friday)}`, monday, friday };
+}
+
+// Dias da semana futura com datas
+function getDiasDaSemana(weekKey) {
+  const monday = getMondayOfWeek(weekKey);
+  return DIAS_SEMANA.map((nome, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    return { nome, data: d };
+  });
+}
+
+// =====================
+// STATE & STORAGE
+// =====================
+const STORAGE_KEY = 'vini_roteiro_v3';
+const SEMANA_ATUAL = getWeekKey(new Date());
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  const state = { semana: SEMANA_ATUAL, tarefas: {}, checks: {}, historico: [], historicoSemanas: [], tarefasFuturas: {} };
+  for (const dia of DIAS) {
+    state.tarefas[dia] = JSON.parse(JSON.stringify(TAREFAS_INICIAIS[dia]));
+    state.checks[dia] = {};
+  }
+  return state;
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+let state = loadState();
+
+// Virada de semana
+if (state.semana !== SEMANA_ATUAL) {
+  if (!state.historicoSemanas) state.historicoSemanas = [];
+  state.historicoSemanas.push({
+    semana: state.semana,
+    checks: JSON.parse(JSON.stringify(state.checks)),
+    historico: JSON.parse(JSON.stringify(state.historico || []))
+  });
+  if (state.historicoSemanas.length > 8) state.historicoSemanas = state.historicoSemanas.slice(-8);
+  for (const dia of DIAS) { state.checks[dia] = {}; }
+  state.historico = [];
+  state.semana = SEMANA_ATUAL;
+}
+
+for (const dia of DIAS) {
+  if (!state.tarefas[dia]) state.tarefas[dia] = JSON.parse(JSON.stringify(TAREFAS_INICIAIS[dia]));
+  if (!state.checks[dia]) state.checks[dia] = {};
+}
+if (!state.tarefasFuturas) state.tarefasFuturas = {};
+saveState();
+
+// =====================
+// NAVEGAÇÃO
+// =====================
+const JS_DIA_MAP = { 0:'Mensal', 1:'Segunda', 2:'Terça', 3:'Quarta', 4:'Quinta', 5:'Sexta', 6:'Mensal' };
+let diaAtual = JS_DIA_MAP[new Date().getDay()] || 'Segunda';
+let diaSelected = diaAtual;
+let semanaFuturaSelected = null; // weekKey
+let diaFuturoSelected = 'Segunda';
+let historicoOpen = false;
+const semanasFuturas = getSemanasFuturasMes();
+
+// =====================
+// TABS
+// =====================
+function renderTabs() {
+  const tabs = document.getElementById('tabs');
+  let html = DIAS.map(dia => {
+    const pct = getPct(dia);
+    const isHoje = dia === diaAtual;
+    const isSelected = !semanaFuturaSelected && dia === diaSelected;
+    return `<button class="tab ${isSelected ? 'active' : ''} ${isHoje && !isSelected ? 'hoje-tab' : ''}" onclick="selectDia('${dia}')">
+      ${dia === 'Mensal' ? '📅 Mensal' : dia}${isHoje && dia !== 'Mensal' ? ' 🔥' : ''}
+      <span class="prog">${pct}%</span>
+    </button>`;
+  }).join('');
+
+  // Semanas futuras
+  semanasFuturas.forEach((wk, idx) => {
+    const info = getLabelSemana(wk, idx);
+    const isSelected = semanaFuturaSelected === wk;
+    const pct = getPctFutura(wk);
+    html += `<button class="tab ${isSelected ? 'active' : 'semana-futura'}" onclick="selectSemanaFutura('${wk}')">
+      ${info.short}
+      <span class="prog">${pct}%</span>
+    </button>`;
+  });
+
+  tabs.innerHTML = html;
+}
+
+// =====================
+// PROGRESSO
+// =====================
+function getPct(dia) {
+  const tarefas = state.tarefas[dia] || [];
+  if (!tarefas.length) return 0;
+  const done = tarefas.filter(t => state.checks[dia] && state.checks[dia][t.id]).length;
+  return Math.round((done / tarefas.length) * 100);
+}
+
+function getPctFutura(weekKey) {
+  const tf = state.tarefasFuturas[weekKey] || {};
+  let total = 0, done = 0;
+  for (const dia of DIAS_SEMANA) {
+    const tarefas = tf[dia] || [];
+    total += tarefas.length;
+    const checks = (state.checks['fut_'+weekKey+'_'+dia] || {});
+    done += tarefas.filter(t => checks[t.id]).length;
+  }
+  if (!total) return 0;
+  return Math.round((done / total) * 100);
+}
+
+// =====================
+// RENDER PRINCIPAL
+// =====================
+function renderMain() {
+  if (semanaFuturaSelected) {
+    renderSemanaFutura();
+  } else {
+    renderDia();
+  }
+}
+
+function renderDia() {
+  const dia = diaSelected;
+  const tarefas = state.tarefas[dia] || [];
+  const checks = state.checks[dia] || {};
+  const pct = getPct(dia);
+
+  const manhãIds = new Set(PERIODOS_MANHÃ[dia] || []);
+  const tarefasManhã = tarefas.filter(t => manhãIds.has(t.id) || t.turno === 'manhã' && !manhãIds.has(t.id));
+  const tarefasTarde = tarefas.filter(t => !manhãIds.has(t.id) && t.turno !== 'manhã');
+  const tarefasCustomManhã = tarefas.filter(t => !manhãIds.has(t.id) && t.turno === 'manhã' && t.id.startsWith('custom_'));
+
+  let html = `<div class="progress-card">
+    <div class="progress-info">
+      <div class="progress-label">Progresso — ${dia === 'Mensal' ? 'Mensal' : dia}</div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+    </div>
+    <div class="progress-pct">${pct}%</div>
+  </div>`;
+
+  // Manhã
+  const labelManhã = LABELS_MANHÃ[dia] || 'Manhã';
+  const itensManhã = tarefas.filter(t => manhãIds.has(t.id));
+  const customManhã = tarefas.filter(t => !manhãIds.has(t.id) && t.turno === 'manhã');
+  if (itensManhã.length || customManhã.length) {
+    html += `<div class="periodo-label">${labelManhã}</div>`;
+    for (const t of [...itensManhã, ...customManhã]) html += renderTarefa(t, !!checks[t.id], dia);
+  }
+
+  // Tarde
+  if (dia !== 'Mensal') {
+    const labelTarde = LABELS_TARDE[dia] || 'Tarde';
+    const itensTarde = tarefas.filter(t => !manhãIds.has(t.id) && t.turno !== 'manhã' && !t.id.startsWith('custom_'));
+    const customTarde = tarefas.filter(t => t.id.startsWith('custom_') && t.turno !== 'manhã');
+    if (itensTarde.length || customTarde.length) {
+      html += `<div class="periodo-label">${labelTarde}</div>`;
+      for (const t of [...itensTarde, ...customTarde]) html += renderTarefa(t, !!checks[t.id], dia);
+    }
+  }
+
+  if (!tarefas.length) html += `<div class="empty-state">Nenhuma tarefa. Adicione abaixo 👇</div>`;
+
+  html += renderAddSection(dia, false);
+
+  const doneCount = tarefas.filter(t => checks[t.id]).length;
+  if (doneCount > 0) {
+    html += `<div class="actions-row">
+      <button class="btn-clear" onclick="clearDone()">🗑️ Remover concluídas (${doneCount})</button>
+      <button class="btn-clear" onclick="uncheckAll()" style="border-color:rgba(123,47,190,0.3);color:rgba(155,63,222,0.7)">↺ Desmarcar todas</button>
+    </div>`;
+  }
+
+  html += `<button class="historico-btn" onclick="toggleHistorico()">📋 Histórico ${historicoOpen ? '▲' : '▼'}</button>
+  <div class="historico-panel ${historicoOpen ? 'open' : ''}">${renderHistorico()}</div>`;
+
+  document.getElementById('main').innerHTML = html;
+}
+
+function renderSemanaFutura() {
+  const wk = semanaFuturaSelected;
+  const idx = semanasFuturas.indexOf(wk);
+  const info = getLabelSemana(wk, idx);
+  const dias = getDiasDaSemana(wk);
+
+  if (!state.tarefasFuturas[wk]) state.tarefasFuturas[wk] = {};
+  for (const { nome } of dias) {
+    if (!state.tarefasFuturas[wk][nome]) {
+      state.tarefasFuturas[wk][nome] = JSON.parse(JSON.stringify(TAREFAS_INICIAIS[nome] || []));
+    }
+    const chkKey = 'fut_' + wk + '_' + nome;
+    if (!state.checks[chkKey]) state.checks[chkKey] = {};
+  }
+
+  const pct = getPctFutura(wk);
+
+  let html = `
+  <div class="semana-header">
+    <div class="semana-header-label">${info.full}</div>
+  </div>
+  <div class="progress-card">
+    <div class="progress-info">
+      <div class="progress-label">Progresso da semana</div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+    </div>
+    <div class="progress-pct">${pct}%</div>
+  </div>
+  <div class="subtabs-wrapper">
+    <div class="subtabs">
+      ${dias.map(({ nome, data }) => {
+        const fmt = data.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit' });
+        return `<button class="subtab ${diaFuturoSelected === nome ? 'active' : ''}" onclick="selectDiaFuturo('${nome}')">${nome} ${fmt}</button>`;
+      }).join('')}
+    </div>
+  </div>`;
+
+  const dia = diaFuturoSelected;
+  const chkKey = 'fut_' + wk + '_' + dia;
+  const tarefas = state.tarefasFuturas[wk][dia] || [];
+  const checks = state.checks[chkKey] || {};
+  const manhãIds = new Set(PERIODOS_MANHÃ[dia] || []);
+
+  const itensManhã = tarefas.filter(t => manhãIds.has(t.id));
+  const customManhã = tarefas.filter(t => !manhãIds.has(t.id) && t.turno === 'manhã');
+  const itensTarde = tarefas.filter(t => !manhãIds.has(t.id) && t.turno !== 'manhã' && !t.id.startsWith('custom_'));
+  const customTarde = tarefas.filter(t => t.id.startsWith('custom_') && t.turno !== 'manhã');
+
+  if (itensManhã.length || customManhã.length) {
+    html += `<div class="periodo-label">${LABELS_MANHÃ[dia] || 'Manhã'}</div>`;
+    for (const t of [...itensManhã, ...customManhã]) html += renderTarefa(t, !!checks[t.id], dia, wk);
+  }
+  if (itensTarde.length || customTarde.length) {
+    html += `<div class="periodo-label">${LABELS_TARDE[dia] || 'Tarde'}</div>`;
+    for (const t of [...itensTarde, ...customTarde]) html += renderTarefa(t, !!checks[t.id], dia, wk);
+  }
+
+  html += renderAddSection(dia, true, wk);
+
+  const doneCount = tarefas.filter(t => checks[t.id]).length;
+  if (doneCount > 0) {
+    html += `<div class="actions-row">
+      <button class="btn-clear" onclick="clearDoneFutura('${wk}','${dia}')">🗑️ Remover concluídas (${doneCount})</button>
+      <button class="btn-clear" onclick="uncheckAllFutura('${wk}','${dia}')" style="border-color:rgba(123,47,190,0.3);color:rgba(155,63,222,0.7)">↺ Desmarcar todas</button>
+    </div>`;
+  }
+
+  document.getElementById('main').innerHTML = html;
+}
+
+function renderAddSection(dia, isFutura, weekKey) {
+  const ctx = isFutura ? `futura_${weekKey}_${dia}` : dia;
+  return `<div class="add-section">
+    <div class="add-title">➕ Adicionar tarefa — ${dia}</div>
+    <div class="add-row">
+      <input class="add-input" id="novaTexto_${ctx}" placeholder="Descreva a tarefa..." onkeydown="if(event.key==='Enter') addTarefa('${ctx}','${isFutura}','${weekKey || ''}','${dia}')">
+      <select class="add-select" id="novaCat_${ctx}">
+        <option value="comunicacao">Comunicação</option>
+        <option value="financeiro">Financeiro</option>
+        <option value="alunos">Alunos</option>
+        <option value="conteudo">Conteúdo</option>
+        <option value="operacional">Operacional</option>
+        <option value="estrategico">Estratégico</option>
+        <option value="custom">Outro</option>
+      </select>
+      <select class="add-select" id="novoTurno_${ctx}">
+        <option value="manhã">☀️ Manhã</option>
+        <option value="tarde">🌙 Tarde</option>
+      </select>
+      <button class="btn-add" onclick="addTarefa('${ctx}','${isFutura}','${weekKey || ''}','${dia}')">Adicionar</button>
+    </div>
+  </div>`;
+}
+
+function renderTarefa(t, isDone, dia, weekKey) {
+  const wkStr = weekKey || '';
+  const isFutura = !!weekKey;
+  return `<div class="tarefa-item ${isDone ? 'done' : ''}" onclick="toggleCheck('${dia}','${t.id}','${isFutura}','${wkStr}')">
+    <div class="check-box"><span class="check-icon">✓</span></div>
+    <div class="dot ${t.cat}"></div>
+    <div class="tarefa-texto">${t.texto}</div>
+    <div class="tarefa-meta">
+      ${t.turno ? `<span class="turno-badge">${t.turno === 'manhã' ? '☀️' : '🌙'}</span>` : ''}
+      ${t.freq ? `<span class="freq-badge">${t.freq}</span>` : ''}
+      <button class="btn-delete" onclick="event.stopPropagation(); deleteTarefa('${dia}','${t.id}','${isFutura}','${wkStr}')">✕</button>
+    </div>
+  </div>`;
+}
+
+function renderHistorico() {
+  const hist = (state.historico || []).slice(-50).reverse();
+  const semanas = (state.historicoSemanas || []).slice().reverse();
+  let html = '';
+  if (!hist.length) {
+    html += `<div style="color:#444;font-size:0.8rem;padding:0.5rem 0">Nenhuma tarefa concluída esta semana ainda.</div>`;
+  } else {
+    const grupos = {};
+    for (const h of hist) {
+      const key = h.data || 'Sem data';
+      if (!grupos[key]) grupos[key] = [];
+      grupos[key].push(h);
+    }
+    for (const [data, items] of Object.entries(grupos)) {
+      html += `<div class="hist-dia"><div class="hist-dia-label">${data}</div>`;
+      for (const item of items) {
+        html += `<div class="hist-item"><span class="hist-check">✓</span><span>${item.texto}</span><span class="hist-data">${item.dia} · ${item.hora||''}</span></div>`;
+      }
+      html += `</div>`;
+    }
+  }
+  if (semanas.length) {
+    html += `<div style="margin-top:1rem;padding-top:0.8rem;border-top:1px solid #252525;">
+      <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;color:#7B2FBE;font-weight:600;margin-bottom:0.6rem;">Semanas anteriores</div>`;
+    for (const s of semanas) {
+      const total = Object.values(s.checks||{}).reduce((acc,d)=>acc+Object.values(d).filter(Boolean).length,0);
+      html += `<div style="font-size:0.75rem;color:#666;padding:0.3rem 0;border-bottom:1px solid #1a1a1a;">
+        📅 ${s.semana} — <span style="color:#22C55E">${total} tarefas concluídas</span></div>`;
+    }
+    html += `</div>`;
+  }
+  return html;
+}
+
+// =====================
+// ACTIONS
+// =====================
+function selectDia(dia) {
+  diaSelected = dia;
+  semanaFuturaSelected = null;
+  renderTabs();
+  renderMain();
+}
+
+function selectSemanaFutura(wk) {
+  semanaFuturaSelected = wk;
+  diaFuturoSelected = 'Segunda';
+  renderTabs();
+  renderMain();
+}
+
+function selectDiaFuturo(dia) {
+  diaFuturoSelected = dia;
+  renderMain();
+}
+
+function toggleCheck(dia, id, isFutura, weekKey) {
+  isFutura = isFutura === 'true';
+  let checks, tarefas;
+  if (isFutura && weekKey) {
+    const chkKey = 'fut_' + weekKey + '_' + dia;
+    if (!state.checks[chkKey]) state.checks[chkKey] = {};
+    checks = state.checks[chkKey];
+    tarefas = (state.tarefasFuturas[weekKey] || {})[dia] || [];
+  } else {
+    if (!state.checks[dia]) state.checks[dia] = {};
+    checks = state.checks[dia];
+    tarefas = state.tarefas[dia] || [];
+  }
+  const wasDone = !!checks[id];
+  checks[id] = !wasDone;
+  if (!wasDone) {
+    const tarefa = tarefas.find(t => t.id === id);
+    if (tarefa) {
+      if (!state.historico) state.historico = [];
+      const agora = new Date();
+      state.historico.push({ id, dia, texto: tarefa.texto, data: agora.toLocaleDateString('pt-BR'), hora: agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) });
+      showToast('✓ Tarefa concluída!');
+    }
+  }
+  saveState();
+  renderTabs();
+  renderMain();
+}
+
+function deleteTarefa(dia, id, isFutura, weekKey) {
+  isFutura = isFutura === 'true';
+  if (isFutura && weekKey) {
+    if (state.tarefasFuturas[weekKey] && state.tarefasFuturas[weekKey][dia]) {
+      state.tarefasFuturas[weekKey][dia] = state.tarefasFuturas[weekKey][dia].filter(t => t.id !== id);
+    }
+    const chkKey = 'fut_' + weekKey + '_' + dia;
+    if (state.checks[chkKey]) delete state.checks[chkKey][id];
+  } else {
+    state.tarefas[dia] = (state.tarefas[dia] || []).filter(t => t.id !== id);
+    if (state.checks[dia]) delete state.checks[dia][id];
+  }
+  saveState();
+  renderTabs();
+  renderMain();
+  showToast('Tarefa removida');
+}
+
+function addTarefa(ctx, isFutura, weekKey, dia) {
+  isFutura = isFutura === 'true';
+  const input = document.getElementById('novaTexto_' + ctx);
+  const cat = document.getElementById('novaCat_' + ctx).value;
+  const turno = document.getElementById('novoTurno_' + ctx).value;
+  const texto = input.value.trim();
+  if (!texto) { input.focus(); return; }
+  const id = 'custom_' + Date.now();
+  const nova = { id, texto, cat, freq:'manual', turno };
+  if (isFutura && weekKey) {
+    if (!state.tarefasFuturas[weekKey]) state.tarefasFuturas[weekKey] = {};
+    if (!state.tarefasFuturas[weekKey][dia]) state.tarefasFuturas[weekKey][dia] = [];
+    state.tarefasFuturas[weekKey][dia].push(nova);
+  } else {
+    if (!state.tarefas[dia]) state.tarefas[dia] = [];
+    state.tarefas[dia].push(nova);
+  }
+  saveState();
+  renderTabs();
+  renderMain();
+  showToast('Tarefa adicionada!');
+}
+
+function clearDone() {
+  const dia = diaSelected;
+  const checks = state.checks[dia] || {};
+  state.tarefas[dia] = (state.tarefas[dia] || []).filter(t => !checks[t.id]);
+  const ids = new Set(state.tarefas[dia].map(t => t.id));
+  for (const id of Object.keys(checks)) { if (!ids.has(id)) delete state.checks[dia][id]; }
+  saveState(); renderTabs(); renderMain();
+  showToast('Concluídas removidas 🗑️');
+}
+
+function clearDoneFutura(wk, dia) {
+  const chkKey = 'fut_' + wk + '_' + dia;
+  const checks = state.checks[chkKey] || {};
+  if (state.tarefasFuturas[wk] && state.tarefasFuturas[wk][dia]) {
+    state.tarefasFuturas[wk][dia] = state.tarefasFuturas[wk][dia].filter(t => !checks[t.id]);
+  }
+  saveState(); renderTabs(); renderMain();
+  showToast('Concluídas removidas 🗑️');
+}
+
+function uncheckAll() {
+  state.checks[diaSelected] = {};
+  saveState(); renderTabs(); renderMain();
+}
+
+function uncheckAllFutura(wk, dia) {
+  state.checks['fut_' + wk + '_' + dia] = {};
+  saveState(); renderTabs(); renderMain();
+}
+
+function toggleHistorico() {
+  historicoOpen = !historicoOpen;
+  renderMain();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function updateDataHoje() {
+  const agora = new Date();
+  document.getElementById('dataHoje').innerHTML = agora.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'}).replace(',','<br>');
+}
+
+// INIT
+updateDataHoje();
+renderTabs();
+renderMain();
+</script>
+</body>
+</html>
